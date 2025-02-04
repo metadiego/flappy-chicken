@@ -1,14 +1,14 @@
 import { customFont } from '@/app/fonts'
 
 // Constants
-export const GRAVITY = 1         // Reduced gravity for slower falling
+export const GRAVITY = 1.2         // Reduced gravity for slower falling
 export const PIPE_SPEED = 3.7      // Slower pipe movement
 export const PIPE_WIDTH = 120        // Increased from 50 to 80
-export const MIN_PIPE_GAP = 190    // Minimum gap between pipes
+export const MIN_PIPE_GAP = 185    // Minimum gap between pipes
 export const MAX_PIPE_GAP = 240    // Maximum gap between pipes
 export const BIRD_RADIUS = 32
 export const HORIZONTAL_PIPE_DISTANCE = 400  // More space between pipes
-export const JUMP_STRENGTH = -14    // Reduced jump strength for better control
+export const JUMP_STRENGTH = -15    // Reduced jump strength for better control
 export const TERMINAL_VELOCITY = 4  // Lower terminal velocity for slower falling
 
 // Types
