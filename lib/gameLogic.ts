@@ -1,7 +1,7 @@
 import { customFont } from '@/app/fonts'
 
 // Constants
-export const GRAVITY = 0.75         // Reduced gravity for slower falling
+export const GRAVITY = 0.85         // Reduced gravity for slower falling
 export const PIPE_SPEED = 3.7      // Slower pipe movement
 export const PIPE_WIDTH = 120        // Increased from 50 to 80
 export const MIN_PIPE_GAP = 200    // Minimum gap between pipes
