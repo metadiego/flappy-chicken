@@ -129,7 +129,13 @@ export const updateGame = (state: GameState, width: number, height: number): Gam
   const collision = checkCollision(updatedBird, updatedPipes, height)
 
   if (collision) {
-    return { ...state, gameOver: true }
+    return { 
+      ...state,
+      gameOver: true,
+      score: newScore,  // Preserve the final score
+      bird: updatedBird,
+      pipes: updatedPipes
+    }
   }
 
   return {
@@ -181,7 +187,6 @@ export const handleJump = (state: GameState) => {
 // Draw score with background box
 const drawScore = (ctx: CanvasRenderingContext2D, score: number) => {
   const text = score.toString()
-  const padding = 20
   const boxWidth = 100
   const boxHeight = 70
 
@@ -283,9 +288,9 @@ export const drawGame = (ctx: CanvasRenderingContext2D, state: GameState) => {
   if (!gameStarted) {
     // drawCenteredText(ctx, "Press Space to Start", ctx.canvas.height / 2)
   } else if (gameOver) {
-    drawCenteredText(ctx, "Game Over!", ctx.canvas.height / 2 - 30)
-    drawCenteredText(ctx, `Score: ${score}`, ctx.canvas.height / 2 + 30)
-    drawCenteredText(ctx, "Press Space to Restart", ctx.canvas.height / 2 + 90)
+    // drawCenteredText(ctx, "Game Over!", ctx.canvas.height / 2 - 30)
+    // drawCenteredText(ctx, `Score: ${score}`, ctx.canvas.height / 2 + 30)
+    // drawCenteredText(ctx, "Press Space to Restart", ctx.canvas.height / 2 + 90)
   }
 }
 

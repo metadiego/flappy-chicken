@@ -11,6 +11,7 @@ export default function FlappyChicken() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [showScoreSubmission, setShowScoreSubmission] = useState(false)
   const { submitScore, isHighScore, submitting, highScores } = useHighScores()
+  const [playerName, setPlayerName] = useState("")
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -111,22 +112,28 @@ export default function FlappyChicken() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-[#FFBAEA]/50"
+            className="absolute inset-0 flex flex-col items-center justify-center"
+            style={{
+              backgroundImage: 'url("/landing_page.png")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
           >
-            <h1 className="text-4xl font-bold text-white mb-8">Flappy Chicken</h1>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleClick()
-              }}
-              className="px-8 py-4 bg-[#EB321A] text-white rounded-full font-bold text-xl shadow-lg hover:bg-yellow-300 transition-colors"
-              aria-label="Start Game"
-            >
-              Start Game
-            </button>
-            <p className="text-white mt-4 text-center">
-              Press SPACE or tap screen to jump
-            </p>
+            <div className="absolute inset-0 flex flex-col items-center justify-end mb-10">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleClick()
+                }}
+                className="px-8 py-4 bg-[#EB321A] text-white rounded-full font-bold font-custom text-xl shadow-lg hover:bg-[#d42d18] transition-colors mt"
+                aria-label="Start Game"
+              >
+                Comenzar
+              </button>
+              <p className="text-white mt-4 text-center drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                Presiona Espacio o toca la pantalla para saltar
+              </p>
+            </div>
           </motion.div>
         )}
         
@@ -136,83 +143,123 @@ export default function FlappyChicken() {
             animate={{ opacity: 1, scale: 1 }}
             className="absolute inset-0 flex flex-col items-center justify-center bg-[#FFBAEA]/50"
           >
-            {/* Game Over Text */}
-            <motion.div
-              initial={{ y: -20 }}
-              animate={{ y: 0 }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-5xl font-bold text-[#FFFF] drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)]">
-                Game Over
-              </h2>
-            </motion.div>
 
-            {/* Score Card */}
+            {/* Game Over and Score Card */}
             <motion.div 
               initial={{ y: 20 }}
               animate={{ y: 0 }}
               className="bg-[#FFFF]/60 rounded-xl p-6 shadow-lg w-72 drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)]"
             >
-              {/* Current Score */}
-              <div className="text-center mb-4">
-                <div className="text-sm uppercase font-bold text-[#EB321A]">Score</div>
-                <div className="text-4xl font-bold text-[#EB321A]">{gameState.score}</div>
-              </div>
-
-              {/* Best Score */}
               <div className="text-center mb-6">
-                <div className="text-sm uppercase font-bold text-[#EB321A]">Best</div>
-                <div className="text-2xl font-bold text-[#EB321A]">
-                  {Math.max(...highScores.map(s => s.score), gameState.score)}
-                </div>
+                <h2 className="text-5xl font-bold text-[#EB321A] drop-shadow-[0_2px_2px_rgba(235,50,26,0.5)] font-custom">
+                  {isHighScore(gameState.score) ? 'New High Score!' : 'Game Over'}
+                </h2>
               </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleClick()
-                  }}
-                  className="bg-[#EB321A] text-white py-3 px-4 rounded-lg font-bold text-lg hover:bg-[#d42d18] transition-colors shadow-md flex items-center justify-center"
-                >
-                  <span className="mr-2">↺</span>
-                  RETRY
-                </button>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    const text = `I scored ${gameState.score} points in Flappy Chicken! Can you beat my score?`
-                    if (navigator.share) {
-                      navigator.share({
-                        title: 'Flappy Chicken Score',
-                        text: text,
-                        url: window.location.href
-                      })
-                    } else {
-                      navigator.clipboard.writeText(text)
-                    }
-                  }}
-                  className="bg-[#FFBAEA] text-[#EB321A] py-3 px-4 rounded-lg font-bold text-lg hover:bg-[#ff9ed7] transition-colors shadow-md flex items-center justify-center"
-                >
-                  <span className="mr-2">↗</span>
-                  SHARE
-                </button>
-
-                {isHighScore(gameState.score) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowScoreSubmission(true)
-                    }}
-                    className="col-span-2 bg-[#FFF9EB] text-[#EB321A] py-3 px-4 rounded-lg font-bold text-lg hover:bg-[#fff0d1] transition-colors shadow-md flex items-center justify-center mt-2"
+              {isHighScore(gameState.score) ? (
+                <>
+                  {/* High Score View */}
+                  <div 
+                    className="text-center mb-6"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <span className="mr-2">⬇</span>
-                    SAVE SCORE
-                  </button>
-                )}
-              </div>
+                    <div className="text-4xl font-bold font-custom text-[#EB321A] mb-2">
+                      {gameState.score}
+                    </div>
+                    {highScores[0] ? (
+                      <div className="text-sm text-[#EB321A] font-custom">
+                        Previous best: {highScores[0].score} by {highScores[0].player_name}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-[#EB321A] font-custom">
+                        First high score!
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Name Input */}
+                  <div 
+                    className="space-y-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Enter your name"
+                      className="w-full px-4 py-2 rounded-lg border border-[#FFBAEA] focus:outline-none focus:ring-2 focus:ring-[#EB321A] font-custom text-center"
+                      maxLength={20}
+                      onChange={(e) => setPlayerName(e.target.value)}
+                      value={playerName}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (playerName.trim()) {
+                          await handleScoreSubmit(playerName)
+                        }
+                      }}
+                      disabled={!playerName.trim()}
+                      className="w-full bg-[#EB321A] text-white py-3 px-4 rounded-lg font-bold text-lg font-custom
+                               hover:bg-[#d42d18] transition-colors shadow-md disabled:opacity-50"
+                    >
+                      Submit Score
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Regular Game Over View */}
+                  <div className="text-center mb-4">
+                    <div className="text-sm uppercase font-bold text-[#EB321A] font-custom">Tu Puntaje</div>
+                    <div className="text-4xl font-bold font-custom text-[#EB321A]">{gameState.score}</div>
+                  </div>
+
+                  <div className="text-center mb-6">
+                    <div className="text-sm uppercase font-bold text-[#EB321A] font-custom">Record</div>
+                    <div className="text-xl font-bold font-custom text-[#EB321A]">
+                      {highScores[0] ? (
+                        <>
+                          {highScores[0].score} por {highScores[0].player_name}
+                        </>
+                      ) : (
+                        'No hay puntajes'
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Regular Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleClick()
+                      }}
+                      className="bg-[#EB321A] text-white py-3 px-4 rounded-lg font-bold font-custom text-lg hover:bg-[#d42d18] transition-colors shadow-md flex items-center justify-center"
+                    >
+                      <span className="mr-2">↺</span>
+                      RETRY
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const text = `I scored ${gameState.score} points in Flappy Chicken! Can you beat my score?`
+                        if (navigator.share) {
+                          navigator.share({
+                            title: 'Flappy Chicken Score',
+                            text: text,
+                            url: window.location.href
+                          })
+                        } else {
+                          navigator.clipboard.writeText(text)
+                        }
+                      }}
+                      className="bg-[#FFBAEA] text-[#EB321A] py-3 px-4 rounded-lg font-bold font-custom text-lg hover:bg-[#ff9ed7] transition-colors shadow-md flex items-center justify-center"
+                    >
+                      <span className="mr-2">↗</span>
+                      SHARE
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
