@@ -16,7 +16,7 @@ const BASE_CONSTANTS = {
 
 // Other constants that don't change with device
 export const PIPE_WIDTH = 120
-export const MIN_PIPE_GAP = 200
+export const MIN_PIPE_GAP = 210
 export const MAX_PIPE_GAP = 240
 export const BIRD_RADIUS = 30
 export const HORIZONTAL_PIPE_DISTANCE = 400
