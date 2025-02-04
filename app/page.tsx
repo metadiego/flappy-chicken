@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { drawGame, updateGame, initGame, type GameState, handleJump } from "@/lib/gameLogic"
 import { ScoreSubmission } from "@/components/ScoreSubmission"
 import { useHighScores } from "@/hooks/useHighScores"
+import { customFont } from './fonts'
 
 export default function FlappyChicken() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -85,6 +86,35 @@ export default function FlappyChicken() {
       setShowScoreSubmission(false)
     }
     return result
+  }
+
+  const generateShareImage = async (score: number): Promise<Blob> => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1200
+    canvas.height = 630
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Could not get canvas context')
+
+    const baseImage = new Image()
+    baseImage.src = '/flappy_chicken_share_image.png'
+    
+    await new Promise((resolve) => {
+      baseImage.onload = resolve
+    })
+
+    ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height)
+    ctx.fillStyle = '#EB321A'
+    ctx.font = `bold 70px ${customFont.style.fontFamily}, sans-serif`
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2)
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob as Blob)
+      }, 'image/png')
+    })
   }
 
   return (
@@ -239,17 +269,46 @@ export default function FlappyChicken() {
                       RETRY
                     </button>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation()
                         const text = `I scored ${gameState.score} points in Flappy Chicken! Can you beat my score?`
-                        if (navigator.share) {
-                          navigator.share({
-                            title: 'Flappy Chicken Score',
-                            text: text,
-                            url: window.location.href
-                          })
-                        } else {
-                          navigator.clipboard.writeText(text)
+                        
+                        try {
+                          const shareImage = await generateShareImage(gameState.score)
+                          const file = new File([shareImage], 'flappy-score.png', { type: 'image/png' })
+
+                          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                              title: 'Flappy Chicken Score',
+                              text: text,
+                              files: [file]
+                            })
+                          } else {
+                            // Fallback for browsers that don't support sharing files
+                            const shareUrl = URL.createObjectURL(shareImage)
+                            const a = document.createElement('a')
+                            a.href = shareUrl
+                            a.download = 'flappy-score.png'
+                            document.body.appendChild(a)
+                            a.click()
+                            document.body.removeChild(a)
+                            URL.revokeObjectURL(shareUrl)
+                            
+                            // Also copy the text to clipboard
+                            await navigator.clipboard.writeText(text)
+                          }
+                        } catch (error) {
+                          console.error('Error sharing:', error)
+                          // Fallback to just sharing text
+                          if (navigator.share) {
+                            await navigator.share({
+                              title: 'Flappy Chicken Score',
+                              text: text,
+                              url: window.location.href
+                            })
+                          } else {
+                            await navigator.clipboard.writeText(text)
+                          }
                         }
                       }}
                       className="bg-[#FFBAEA] text-[#EB321A] py-3 px-4 rounded-lg font-bold font-custom text-lg hover:bg-[#ff9ed7] transition-colors shadow-md flex items-center justify-center"

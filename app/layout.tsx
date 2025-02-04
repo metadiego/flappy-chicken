@@ -15,16 +15,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Flappy Chicken by The Window",
-  description: "Make Chickens Great Again",
+  description: "Making Chicken Great Again",
   openGraph: {
     title: "Flappy Chicken by The Window",
-    description: "Make Chickens Great Again",
+    description: "Making Chicken Great Again",
     images: [
       {
         url: "/landing_page.png",
         width: 1200,
         height: 630,
-        alt: "Flappy Chicken Game"
+        alt: "Flappy Chicken Game - The Window"
       }
     ],
     type: "website"
