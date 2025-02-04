@@ -3,9 +3,9 @@ import { customFont } from '@/app/fonts'
 // Base constants
 const BASE_CONSTANTS = {
   MOBILE: {
-    GRAVITY: 1.1,
-    PIPE_SPEED: 3.1,
-    JUMP_STRENGTH: -15
+    GRAVITY: 1.3,
+    PIPE_SPEED: 3.2,
+    JUMP_STRENGTH: -17
   },
   DESKTOP: {
     GRAVITY: 0.6,
