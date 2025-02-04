@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: "Making Chicken Great Again",
     images: [
       {
-        url: "/flappy_share.png", // Make sure this matches your image name
+        url: "/flappy_chicken_share_image.png", // Make sure this matches your image name
         width: 1200,
         height: 630,
         alt: "Flappy Chicken Game - The Window"
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Flappy Chicken by The Window",
     description: "Making Chicken Great Again",
-    images: ["/flappy_share.png"], // Update this to match your image name
+    images: ["/flappy_chicken_share_image.png"], // Update this to match your image name
     creator: "@thewindow"
   }
 };
