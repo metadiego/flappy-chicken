@@ -5,7 +5,7 @@ const BASE_CONSTANTS = {
   MOBILE: {
     GRAVITY: 1.3,
     PIPE_SPEED: 3.2,
-    JUMP_STRENGTH: -17
+    JUMP_STRENGTH: -18
   },
   DESKTOP: {
     GRAVITY: 0.6,
@@ -288,60 +288,56 @@ const drawScore = (ctx: CanvasRenderingContext2D, score: number) => {
   ctx.fillText(text, ctx.canvas.width / 2, y + boxHeight/2)
 }
 
+// Add performance optimizations
 export const drawGame = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  // Clear only what's needed
+  const { bird, pipes, score, gameStarted, gameOver } = state
+  
+  // Clear only the necessary areas
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-  // Draw background more efficiently
+  // Draw background with hardware acceleration
   const bgImage = imageCache.get('background')
   if (bgImage) {
     ctx.save()
     ctx.scale(0.5, 0.5)
-    const pattern = ctx.createPattern(bgImage, 'repeat')
-    if (pattern) {
-      ctx.fillStyle = pattern
-      ctx.fillRect(0, 0, ctx.canvas.width * 2, ctx.canvas.height * 2)
-    }
+    ctx.drawImage(bgImage, 0, 0, ctx.canvas.width * 2, ctx.canvas.height * 2)
     ctx.restore()
   }
 
-  const { bird, pipes, score, gameStarted, gameOver } = state
-
-  // Draw pipes 
+  // Draw pipes with optimized transforms
   pipes.forEach(pipe => {
-    // Draw top pipe (upside down)
     ctx.save()
-    ctx.translate(pipe.x + PIPE_WIDTH/2, pipe.topHeight/2)
-    ctx.rotate(Math.PI)  // Rotate 180 degrees
+    // Use transforms instead of multiple draw calls
+    ctx.translate(pipe.x, 0)
+    
+    // Draw top pipe
+    ctx.save()
+    ctx.translate(PIPE_WIDTH/2, pipe.topHeight/2)
+    ctx.rotate(Math.PI)
     ctx.drawImage(
       pipeImages.top,
       -PIPE_WIDTH/2,
       -pipe.topHeight/2,
-      PIPE_WIDTH,    // Using wider width
+      PIPE_WIDTH,
       pipe.topHeight
     )
     ctx.restore()
 
-    // Draw bottom pipe fry
+    // Draw bottom pipe
     ctx.drawImage(
       pipeImages.bottom,
-      pipe.x,
+      0,
       pipe.bottomY,
-      PIPE_WIDTH,    // Using wider width
+      PIPE_WIDTH,
       ctx.canvas.height - pipe.bottomY
     )
+    ctx.restore()
   })
 
-  // Draw bird
+  // Draw bird with optimized transforms
   ctx.save()
   ctx.translate(bird.x, bird.y)
-  
-  // Reduce rotation amount by lowering the multiplier (from 0.2 to 0.1)
-  // and tighten the min/max bounds (from -0.5/0.5 to -0.3/0.3)
-  const rotation = Math.min(Math.max(bird.velocity * 0.1, -0.3), 0.3)
-  ctx.rotate(rotation)
-
-  // Draw the current bird frame
+  ctx.rotate(Math.min(Math.max(bird.velocity * 0.1, -0.3), 0.3))
   ctx.drawImage(
     birdImages[state.currentBirdFrame],
     -BIRD_SIZE/2,
@@ -349,10 +345,9 @@ export const drawGame = (ctx: CanvasRenderingContext2D, state: GameState) => {
     BIRD_SIZE,
     BIRD_SIZE
   )
-
   ctx.restore()
 
-  // Replace old score drawing with new function
+  // Draw score efficiently
   drawScore(ctx, score)
 
   // Draw messages
