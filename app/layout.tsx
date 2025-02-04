@@ -16,24 +16,26 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Flappy Chicken by The Window",
   description: "Making Chicken Great Again",
+  metadataBase: new URL('https://www.game.thewindow.es'),
   openGraph: {
     title: "Flappy Chicken by The Window",
     description: "Making Chicken Great Again",
     images: [
       {
-        url: "/landing_page.png",
+        url: "/flappy_share.png", // Make sure this matches your image name
         width: 1200,
         height: 630,
         alt: "Flappy Chicken Game - The Window"
       }
     ],
-    type: "website"
+    type: "website",
+    siteName: "Flappy Chicken",
   },
   twitter: {
     card: "summary_large_image",
     title: "Flappy Chicken by The Window",
-    description: "Make Chickens Great Again",
-    images: ["/landing_page.png"],
+    description: "Making Chicken Great Again",
+    images: ["/flappy_share.png"], // Update this to match your image name
     creator: "@thewindow"
   }
 };
