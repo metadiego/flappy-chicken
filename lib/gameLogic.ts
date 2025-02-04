@@ -5,7 +5,7 @@ const BASE_CONSTANTS = {
   MOBILE: {
     GRAVITY: 1.3,
     PIPE_SPEED: 3.2,
-    JUMP_STRENGTH: -18
+    JUMP_STRENGTH: -16
   },
   DESKTOP: {
     GRAVITY: 0.6,
