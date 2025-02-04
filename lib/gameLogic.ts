@@ -3,8 +3,8 @@ import { customFont } from '@/app/fonts'
 // Base constants
 const BASE_CONSTANTS = {
   MOBILE: {
-    GRAVITY: 1.2,
-    PIPE_SPEED: 3.7,
+    GRAVITY: 1.1,
+    PIPE_SPEED: 3.1,
     JUMP_STRENGTH: -15
   },
   DESKTOP: {
@@ -16,9 +16,9 @@ const BASE_CONSTANTS = {
 
 // Other constants that don't change with device
 export const PIPE_WIDTH = 120
-export const MIN_PIPE_GAP = 185
+export const MIN_PIPE_GAP = 200
 export const MAX_PIPE_GAP = 240
-export const BIRD_RADIUS = 32
+export const BIRD_RADIUS = 30
 export const HORIZONTAL_PIPE_DISTANCE = 400
 export const TERMINAL_VELOCITY = 4
 
