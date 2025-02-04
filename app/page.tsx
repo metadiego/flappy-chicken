@@ -1,68 +1,16 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
-import { drawGame, updateGame, initGame, type GameState, handleJump } from "@/lib/gameLogic"
-import { ScoreSubmission } from "@/components/ScoreSubmission"
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { type GameState, handleJump } from "@/lib/gameLogic"
+import { GameCanvas } from "@/components/GameCanvas"
 import { useHighScores } from "@/hooks/useHighScores"
 import { customFont } from './fonts'
 
 export default function FlappyChicken() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [gameState, setGameState] = useState<GameState | null>(null)
-  const [showScoreSubmission, setShowScoreSubmission] = useState(false)
-  const { submitScore, isHighScore, submitting, highScores } = useHighScores()
+  const { submitScore, isHighScore, highScores } = useHighScores()
   const [playerName, setPlayerName] = useState("")
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const initialState = initGame(canvas.width, canvas.height)
-    setGameState(initialState)
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault()
-        setGameState(prevState => {
-          if (!prevState) return null
-          if (!prevState.gameStarted) {
-            return { ...prevState, gameStarted: true }
-          }
-          if (prevState.gameOver) {
-            return initGame(canvas.width, canvas.height)
-          }
-          const newState = { ...prevState }
-          handleJump(newState)
-          return newState
-        })
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyPress)
-
-    let animationFrameId: number
-
-    const gameLoop = () => {
-      setGameState(prevState => {
-        if (!prevState) return null
-        const newState = updateGame(prevState, canvas.width, canvas.height)
-        drawGame(ctx, newState)
-        return newState
-      })
-      animationFrameId = requestAnimationFrame(gameLoop)
-    }
-
-    gameLoop()
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress)
-      cancelAnimationFrame(animationFrameId)
-    }
-  }, [])
 
   const handleClick = () => {
     setGameState(prevState => {
@@ -71,7 +19,7 @@ export default function FlappyChicken() {
         return { ...prevState, gameStarted: true }
       }
       if (prevState.gameOver) {
-        return initGame(canvasRef.current?.width || 400, canvasRef.current?.height || 700)
+        return null  // This will trigger the initialization effect in GameCanvas
       }
       const newState = { ...prevState }
       handleJump(newState)
@@ -80,12 +28,8 @@ export default function FlappyChicken() {
   }
 
   const handleScoreSubmit = async (playerName: string) => {
-    if (!gameState) return { success: false, message: "Game state not found" }
-    const result = await submitScore(playerName, gameState.score)
-    if (result.success) {
-      setShowScoreSubmission(false)
-    }
-    return result
+    if (!gameState) return
+    await submitScore(playerName, gameState.score)
   }
 
   const generateShareImage = async (score: number): Promise<Blob> => {
@@ -130,12 +74,9 @@ export default function FlappyChicken() {
         className="relative w-full max-w-md aspect-[9/16] bg-[#FFF9EB] rounded-2xl shadow-xl overflow-hidden"
         onClick={handleClick}
       >
-        <canvas 
-          ref={canvasRef} 
-          width={400} 
-          height={700} 
-          className="w-full h-full object-contain"
-          aria-label="Flappy Chicken Game Canvas"
+        <GameCanvas 
+          gameState={gameState}
+          setGameState={setGameState}
         />
         
         {!gameState?.gameStarted && !gameState?.gameOver && (
@@ -322,17 +263,6 @@ export default function FlappyChicken() {
             </motion.div>
           </motion.div>
         )}
-        
-        <AnimatePresence>
-          {showScoreSubmission && gameState && (
-            <ScoreSubmission
-              score={gameState.score}
-              onSubmit={handleScoreSubmit}
-              onClose={() => setShowScoreSubmission(false)}
-              submitting={submitting}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </div>
   )

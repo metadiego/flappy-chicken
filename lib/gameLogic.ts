@@ -1,3 +1,5 @@
+import { customFont } from '@/app/fonts'
+
 // Constants
 export const GRAVITY = 0.6         // Reduced gravity for slower falling
 export const PIPE_SPEED = 2.1      // Slower pipe movement
@@ -38,32 +40,45 @@ const BIRD_SIZE = 80
 
 // Initialize empty arrays/objects for images
 let birdImages: HTMLImageElement[] = []
-let pipeImages: { top: HTMLImageElement; bottom: HTMLImageElement } = {
+const pipeImages: { top: HTMLImageElement; bottom: HTMLImageElement } = {
   top: {} as HTMLImageElement,
   bottom: {} as HTMLImageElement
 }
 
-// Initialize images only in browser context
-if (typeof window !== 'undefined') {
-  // Initialize bird images
-  birdImages = [
-    new window.Image(),
-    new window.Image(),
-    new window.Image()
-  ]
+// Optimize image loading and caching
+const imageCache = new Map<string, HTMLImageElement>()
 
-  birdImages[0].src = '/3d_chicken_1.svg'  // Wings down
-  birdImages[1].src = '/3d_chicken_2.svg'  // Wings middle
-  birdImages[2].src = '/3d_chicken_2.svg'  // Wings up
-
-  // Initialize pipe images
-  pipeImages = {
-    top: new window.Image(),
-    bottom: new window.Image()
+const loadImage = (src: string): Promise<HTMLImageElement> => {
+  if (imageCache.has(src)) {
+    return Promise.resolve(imageCache.get(src)!)
   }
 
-  pipeImages.top.src = '/pipe.svg'
-  pipeImages.bottom.src = '/pipe.svg'
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      imageCache.set(src, img)
+      resolve(img)
+    }
+    img.src = src
+  })
+}
+
+// Move browser-specific initialization into a function
+export const initializeGameAssets = () => {
+  if (typeof window === 'undefined') return
+
+  return Promise.all([
+    loadImage('/3d_chicken_1.svg'),
+    loadImage('/3d_chicken_2.svg'),
+    loadImage('/3d_chicken_2.svg'),
+    loadImage('/pipe.svg'),
+    loadImage('/background.png')
+  ]).then(([bird1, bird2, bird3, pipe, bg]) => {
+    birdImages = [bird1, bird2, bird3]
+    pipeImages.top = pipe
+    pipeImages.bottom = pipe
+    imageCache.set('background', bg)
+  })
 }
 
 export const initGame = (width: number, height: number): GameState => {
@@ -90,40 +105,33 @@ export const updateGame = (state: GameState, width: number, height: number): Gam
     return state
   }
 
-  // Update frame count and bird frame
-  frameCount++
-  let currentBirdFrame = state.currentBirdFrame
-  
-  // If bird is moving upward (negative velocity), cycle through frames
-  if (state.bird.velocity < 0) {
-    currentBirdFrame = Math.floor(frameCount / FRAMES_PER_FLAP) % 3
-  } else {
-    // If falling, use wings down position
-    currentBirdFrame = 0
-  }
+  // Update frame count and bird frame more efficiently
+  frameCount = (frameCount + 1) % (FRAMES_PER_FLAP * 3)
+  const currentBirdFrame = state.bird.velocity < 0 
+    ? Math.floor(frameCount / FRAMES_PER_FLAP)
+    : 0
 
-  const { bird, pipes, score } = state
-
-  // Update bird velocity and position with slower physics
-  const newVelocity = Math.min(bird.velocity + GRAVITY, TERMINAL_VELOCITY)
+  // Update bird physics
+  const newVelocity = Math.min(state.bird.velocity + GRAVITY, TERMINAL_VELOCITY)
   const updatedBird = {
-    ...bird,
-    y: bird.y + newVelocity,
+    ...state.bird,
+    y: state.bird.y + newVelocity,
     velocity: newVelocity
   }
 
-  // Update pipes position
-  const updatedPipes = pipes
-    .map(pipe => ({ ...pipe, x: pipe.x - PIPE_SPEED }))
+  // More efficient pipe updates
+  const updatedPipes = state.pipes
     .filter(pipe => pipe.x + PIPE_WIDTH > -50)
+    .map(pipe => ({ ...pipe, x: pipe.x - PIPE_SPEED }))
 
-  // Generate new pipe when needed
-  if (pipes[pipes.length - 1].x <= width - HORIZONTAL_PIPE_DISTANCE) {
+  // Only generate new pipe when needed
+  if (updatedPipes.length < 3 && 
+      updatedPipes[updatedPipes.length - 1].x <= width - HORIZONTAL_PIPE_DISTANCE) {
     updatedPipes.push(generatePipe(width, height))
   }
 
   // Update score when passing pipes
-  const newScore = pipes[0].x + PIPE_WIDTH < bird.x ? score + 1 : score
+  const newScore = updatedPipes[0].x + PIPE_WIDTH < updatedBird.x ? state.score + 1 : state.score
 
   // Check for any collisions (both pipes and boundaries)
   const collision = checkCollision(updatedBird, updatedPipes, height)
@@ -165,13 +173,17 @@ const generatePipe = (width: number, height: number): Pipe => {
 }
 
 const checkCollision = (bird: Bird, pipes: Pipe[], height: number): boolean => {
-  // Check screen boundaries
+  // Quick boundary check first
   if (bird.y - BIRD_RADIUS <= 0 || bird.y + BIRD_RADIUS >= height) {
     return true
   }
 
-  // Check pipe collisions
-  return pipes.some(pipe => 
+  // Only check pipes that are near the bird
+  const nearbyPipes = pipes.filter(pipe => 
+    Math.abs(pipe.x - bird.x) < PIPE_WIDTH + BIRD_RADIUS
+  )
+
+  return nearbyPipes.some(pipe => 
     bird.x + BIRD_RADIUS > pipe.x &&
     bird.x - BIRD_RADIUS < pipe.x + PIPE_WIDTH &&
     (bird.y - BIRD_RADIUS < pipe.topHeight || bird.y + BIRD_RADIUS > pipe.bottomY)
@@ -208,33 +220,30 @@ const drawScore = (ctx: CanvasRenderingContext2D, score: number) => {
 
   // Draw score text
   ctx.fillStyle = "#EB321A"
-  ctx.font = "bold 48px Arial"
+  ctx.font = `bold 30px ${customFont.style.fontFamily}, sans-serif`
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
   ctx.fillText(text, ctx.canvas.width / 2, y + boxHeight/2)
 }
 
 export const drawGame = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  const { bird, pipes, score, gameStarted, gameOver } = state
-
-  // Clear canvas
+  // Clear only what's needed
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-  // Draw patterned background
-  const pattern = document.createElement('img')
-  pattern.src = '/background.png'
-  const bg = ctx.createPattern(pattern, 'repeat')
-  if (bg) {
-    ctx.save()  // Save current context state
-    ctx.scale(0.5, 0.5)  // Scale down to 50%
-    ctx.fillStyle = bg
-    ctx.fillRect(0, 0, ctx.canvas.width * 2, ctx.canvas.height * 2)  // Compensate for scale
-    ctx.restore()  // Restore context state
-  } else {
-    // Fallback color if pattern fails to load
-    ctx.fillStyle = "#FFF5EA"
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  // Draw background more efficiently
+  const bgImage = imageCache.get('background')
+  if (bgImage) {
+    ctx.save()
+    ctx.scale(0.5, 0.5)
+    const pattern = ctx.createPattern(bgImage, 'repeat')
+    if (pattern) {
+      ctx.fillStyle = pattern
+      ctx.fillRect(0, 0, ctx.canvas.width * 2, ctx.canvas.height * 2)
+    }
+    ctx.restore()
   }
+
+  const { bird, pipes, score, gameStarted, gameOver } = state
 
   // Draw pipes 
   pipes.forEach(pipe => {
