@@ -11,7 +11,7 @@ interface GameCanvasProps {
 
 export function GameCanvas({ gameState, setGameState }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const rafRef = useRef<number>()
+  const rafRef = useRef<number | null>(null)
   const { recordGameAnalytics } = useGameAnalytics()
 
   // Optimize game loop with useCallback
