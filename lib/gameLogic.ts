@@ -1,12 +1,12 @@
 // Constants
-export const GRAVITY = 0.6         // Reduced gravity for slower falling
-export const PIPE_SPEED = 4.5      // Slower pipe movement
+export const GRAVITY = 0.8         // Reduced gravity for slower falling
+export const PIPE_SPEED = 4      // Slower pipe movement
 export const PIPE_WIDTH = 120        // Increased from 50 to 80
 export const MIN_PIPE_GAP = 185    // Minimum gap between pipes
 export const MAX_PIPE_GAP = 220    // Maximum gap between pipes
 export const BIRD_RADIUS = 33
 export const HORIZONTAL_PIPE_DISTANCE = 350  // More space between pipes
-export const JUMP_STRENGTH = -8    // Reduced jump strength for better control
+export const JUMP_STRENGTH = -10    // Reduced jump strength for better control
 export const TERMINAL_VELOCITY = 4.5  // Lower terminal velocity for slower falling
 
 // Types
