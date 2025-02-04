@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { drawGame, updateGame, initGame, initializeGameAssets, type GameState, handleJump } from "@/lib/gameLogic"
+import { useGameAnalytics } from "@/hooks/useGameAnalytics"
 
 interface GameCanvasProps {
   gameState: GameState | null
@@ -11,6 +12,7 @@ interface GameCanvasProps {
 export function GameCanvas({ gameState, setGameState }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const keyListenerRef = useRef<((e: KeyboardEvent) => void) | null>(null)
+  const { recordGameAnalytics } = useGameAnalytics()
 
   // Initialize game when gameState is null
   useEffect(() => {
@@ -78,6 +80,13 @@ export function GameCanvas({ gameState, setGameState }: GameCanvasProps) {
       }
     })
   }, [setGameState])
+
+  // Add effect to record analytics when game ends
+  useEffect(() => {
+    if (gameState?.gameOver) {
+      recordGameAnalytics(gameState)
+    }
+  }, [gameState?.gameOver])
 
   return (
     <canvas 

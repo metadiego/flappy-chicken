@@ -1,15 +1,41 @@
 import { customFont } from '@/app/fonts'
 
-// Constants
-export const GRAVITY = 1.2         // Reduced gravity for slower falling
-export const PIPE_SPEED = 3.7      // Slower pipe movement
-export const PIPE_WIDTH = 120        // Increased from 50 to 80
-export const MIN_PIPE_GAP = 185    // Minimum gap between pipes
-export const MAX_PIPE_GAP = 240    // Maximum gap between pipes
+// Base constants
+const BASE_CONSTANTS = {
+  MOBILE: {
+    GRAVITY: 1.2,
+    PIPE_SPEED: 3.7,
+    JUMP_STRENGTH: -15
+  },
+  DESKTOP: {
+    GRAVITY: 0.6,
+    PIPE_SPEED: 2.2,
+    JUMP_STRENGTH: -12
+  }
+}
+
+// Other constants that don't change with device
+export const PIPE_WIDTH = 120
+export const MIN_PIPE_GAP = 185
+export const MAX_PIPE_GAP = 240
 export const BIRD_RADIUS = 32
-export const HORIZONTAL_PIPE_DISTANCE = 400  // More space between pipes
-export const JUMP_STRENGTH = -15    // Reduced jump strength for better control
-export const TERMINAL_VELOCITY = 4  // Lower terminal velocity for slower falling
+export const HORIZONTAL_PIPE_DISTANCE = 400
+export const TERMINAL_VELOCITY = 4
+
+// Dynamic constants based on device
+let GRAVITY: number
+let PIPE_SPEED: number
+let JUMP_STRENGTH: number
+
+// Function to set constants based on device
+const setDeviceConstants = () => {
+  const isMobile = /Mobile|Android|iPhone/i.test(navigator.userAgent)
+  const constants = isMobile ? BASE_CONSTANTS.MOBILE : BASE_CONSTANTS.DESKTOP
+  
+  GRAVITY = constants.GRAVITY
+  PIPE_SPEED = constants.PIPE_SPEED
+  JUMP_STRENGTH = constants.JUMP_STRENGTH
+}
 
 // Types
 export interface Bird {
@@ -33,6 +59,11 @@ export interface GameState {
   gameStarted: boolean
   gameOver: boolean
   currentBirdFrame: number  // 0 = down, 1 = middle, 2 = up
+  analytics: {
+    gameStartTime: Date
+    jumpsCount: number
+    obstaclesPassed: number
+  }
 }
 
 // Animation constants
@@ -63,9 +94,12 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
   })
 }
 
-// Move browser-specific initialization into a function
+// Initialize constants when game assets are loaded
 export const initializeGameAssets = () => {
   if (typeof window === 'undefined') return
+
+  // Set device-specific constants
+  setDeviceConstants()
 
   return Promise.all([
     loadImage('/3d_chicken_1.svg'),
@@ -81,6 +115,19 @@ export const initializeGameAssets = () => {
   })
 }
 
+// Export constants for use in other components
+export const getGameConstants = () => ({
+  GRAVITY,
+  PIPE_SPEED,
+  JUMP_STRENGTH,
+  PIPE_WIDTH,
+  MIN_PIPE_GAP,
+  MAX_PIPE_GAP,
+  BIRD_RADIUS,
+  HORIZONTAL_PIPE_DISTANCE,
+  TERMINAL_VELOCITY
+})
+
 export const initGame = (width: number, height: number): GameState => {
   return {
     bird: { 
@@ -92,7 +139,12 @@ export const initGame = (width: number, height: number): GameState => {
     score: 0,
     gameStarted: false,
     gameOver: false,
-    currentBirdFrame: 0  // Start with wings down
+    currentBirdFrame: 0,  // Start with wings down
+    analytics: {
+      gameStartTime: new Date(),
+      jumpsCount: 0,
+      obstaclesPassed: 0
+    }
   }
 }
 
@@ -104,6 +156,9 @@ export const updateGame = (state: GameState, width: number, height: number): Gam
   if (!state.gameStarted || state.gameOver) {
     return state
   }
+
+  // Get current constants
+  const { GRAVITY, PIPE_SPEED, TERMINAL_VELOCITY } = getGameConstants()
 
   // Update frame count and bird frame more efficiently
   frameCount = (frameCount + 1) % (FRAMES_PER_FLAP * 3)
@@ -132,6 +187,11 @@ export const updateGame = (state: GameState, width: number, height: number): Gam
 
   // Update score when passing pipes
   const newScore = updatedPipes[0].x + PIPE_WIDTH < updatedBird.x ? state.score + 1 : state.score
+
+  // Track obstacles passed when score increases
+  if (updatedPipes[0].x + PIPE_WIDTH < updatedBird.x && newScore > state.score) {
+    state.analytics.obstaclesPassed++
+  }
 
   // Check for any collisions (both pipes and boundaries)
   const collision = checkCollision(updatedBird, updatedPipes, height)
@@ -192,7 +252,9 @@ const checkCollision = (bird: Bird, pipes: Pipe[], height: number): boolean => {
 
 export const handleJump = (state: GameState) => {
   if (!state.gameOver) {
+    const { JUMP_STRENGTH } = getGameConstants()
     state.bird.velocity = JUMP_STRENGTH
+    state.analytics.jumpsCount++
   }
 }
 

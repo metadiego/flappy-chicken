@@ -29,6 +29,44 @@ export interface Database {
           created_at?: string
         }
       }
+      game_analytics: {
+        Row: {
+          id: number
+          score: number
+          play_time_ms: number
+          device_type: string
+          browser_info: string
+          game_start_time: string
+          game_end_time: string
+          jumps_count: number
+          obstacles_passed: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          score: number
+          play_time_ms: number
+          device_type: string
+          browser_info: string
+          game_start_time: string
+          game_end_time: string
+          jumps_count: number
+          obstacles_passed: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          score?: number
+          play_time_ms?: number
+          device_type?: string
+          browser_info?: string
+          game_start_time?: string
+          game_end_time?: string
+          jumps_count?: number
+          obstacles_passed?: number
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
