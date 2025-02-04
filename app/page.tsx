@@ -222,7 +222,7 @@ export default function FlappyChicken() {
                             await navigator.share({
                               title: 'Flappy Chicken Score',
                               text: text,
-                              url: 'https://www.game.thewindow.es', // Add your actual domain
+                              url: 'https://game.thewindow.es',
                               files: [file]
                             })
                           } else {

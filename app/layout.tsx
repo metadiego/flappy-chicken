@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: "Making Chicken Great Again",
     images: [
       {
-        url: "/flappy_chicken_share_image.png", // Make sure this matches your image name
+        url: "https://game.thewindow.es/flappy_chicken_share_image.png",
         width: 1200,
         height: 630,
         alt: "Flappy Chicken Game - The Window"
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Flappy Chicken by The Window",
     description: "Making Chicken Great Again",
-    images: ["/flappy_chicken_share_image.png"], // Update this to match your image name
+    images: ["https://game.thewindow.es/flappy_chicken_share_image.png"],
     creator: "@thewindow"
   }
 };
@@ -47,6 +47,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased ${customFont.variable}`}>
+      <head>
+        <meta property="og:image" content="https://game.thewindow.es/flappy_chicken_share_image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content="https://game.thewindow.es/" />
+        <meta property="og:image:secure_url" content="https://game.thewindow.es/flappy_chicken_share_image.png" />
+      </head>
       <body>{children}</body>
     </html>
   );
