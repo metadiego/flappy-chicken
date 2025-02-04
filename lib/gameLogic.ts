@@ -293,10 +293,3 @@ export const drawGame = (ctx: CanvasRenderingContext2D, state: GameState) => {
     // drawCenteredText(ctx, "Press Space to Restart", ctx.canvas.height / 2 + 90)
   }
 }
-
-const drawCenteredText = (ctx: CanvasRenderingContext2D, text: string, y: number) => {
-  ctx.fillStyle = "white"
-  ctx.font = "24px Arial"
-  ctx.textAlign = "center"
-  ctx.fillText(text, ctx.canvas.width / 2, y)
-} 
